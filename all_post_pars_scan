@@ -6,7 +6,7 @@
 #include <BLEAdvertisedDevice.h>
 
 const char* ssid = "FLATRON";
-const char* password =  "1234567890123";
+const char* password =  "123";
 
 String s3 = " ", s2 = " ";
 int scanTime = 20; 
@@ -21,7 +21,7 @@ class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks
       String s1(advertisedDevice.toString().c_str());
       String s4(advertisedDevice.getRSSI());
       
-      s2="Device 8, RSSI: "+s4+", "+s1+"; "+s2;  
+      s2="Device: 8, RSSI: "+s4+", "+s1+"; "+s2;  
       Serial.println(s2);
       
     }
