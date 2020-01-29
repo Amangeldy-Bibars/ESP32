@@ -1,0 +1,116 @@
+#include <WiFi.h>
+#include <HTTPClient.h>
+ #include <BLEDevice.h>
+#include <BLEUtils.h>
+#include <BLEScan.h>
+#include <BLEAdvertisedDevice.h>
+
+const char* ssid = "FLATRON";
+const char* password =  "1234567890123";
+
+String s3 = " ", s2 = " ";
+int scanTime = 50; 
+BLEScan* pBLEScan;
+
+class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks 
+{
+    void onResult(BLEAdvertisedDevice advertisedDevice) 
+    {
+      //Serial.printf("Advertised Device: %s \n", advertisedDevice.toString().c_str());
+    
+      String s1(advertisedDevice.toString().c_str());
+      String s4(advertisedDevice.getRSSI());
+      
+      s2="Device: 8, RSSI: "+s4+", "+s1+"; "+s2;  
+      Serial.println(s2);
+      
+    }
+};
+
+void setup() {
+ 
+  Serial.begin(115200);
+  delay(4000); 
+ 
+  WiFi.begin(ssid, password); 
+ 
+  while (WiFi.status() != WL_CONNECTED) 
+  { 
+    delay(1000);
+    Serial.println("Connecting to WiFi..");
+  }
+ 
+  Serial.println("Connected to the WiFi network");
+
+  BLEDevice::init("");
+  pBLEScan = BLEDevice::getScan(); 
+  pBLEScan->setAdvertisedDeviceCallbacks(new MyAdvertisedDeviceCallbacks());
+  pBLEScan->setActiveScan(true);
+  pBLEScan->setInterval(100);
+  pBLEScan->setWindow(99);  
+ 
+}
+ 
+void loop() {
+ 
+
+  BLEScanResults foundDevices = pBLEScan->start(scanTime, false);
+  
+  Serial.print("Devices found: ");
+  Serial.println(foundDevices.getCount());
+  delay(1000);
+  Serial.println("Scan done");
+
+  WiFi.begin(ssid, password); 
+  delay(1000);
+  /*while (WiFi.status() != WL_CONNECTED) 
+  { 
+    delay(1000);
+    Serial.println("Connecting to WiFi..");
+  }*/
+ 
+  Serial.println("Connected to the WiFi network");
+
+  //delay(1000);
+  if(WiFi.status()== WL_CONNECTED){  
+ 
+   HTTPClient http;   
+  delay(1000);
+   http.begin("http://95.161.225.76/TestBLE/api/APIble/TreatmentData");
+     
+   http.addHeader("Content-Type", "application/json; charset=utf-8");
+
+    //s2="test4";
+    s3="";
+    s3="{ \"NotParsed\" : \""+s2+"\"}";
+    Serial.println(s3);
+   int httpResponseCode = http.POST(s3);   
+  delay(1000);
+   if(httpResponseCode>0){ 
+    String response = http.getString();                   
+    Serial.println(httpResponseCode);  
+    Serial.println(response);       
+ 
+   }
+   else
+   { 
+    Serial.print("Error on sending POST: ");
+    Serial.println(httpResponseCode);
+ 
+   } 
+   delay(1000);
+   http.end();  
+ 
+  }
+   else
+   {   
+      Serial.println("Error in WiFi connection");
+   }
+ 
+  pBLEScan->clearResults(); 
+  s3="";
+  s2="";
+  
+  delay(2000);  
+ 
+}
